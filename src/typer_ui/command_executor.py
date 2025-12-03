@@ -68,7 +68,7 @@ class CommandExecutor:
                     break
                 decoded_line = line.decode().rstrip()
                 lines.append(decoded_line)
-                formatted_line = f"[{stream_name}] {decoded_line}"
+                formatted_line = f"{decoded_line}"
                 self.output_callback(formatted_line)
         except (OSError, UnicodeDecodeError) as e:
             error_msg = f"Error reading {stream_name} stream: {e}"

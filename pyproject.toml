@@ -14,11 +14,10 @@ dependencies = [
     "nicegui"
 ]
 
-[project.urls]
-Homepage = ""
-
 [tool.setuptools]
-package_dir = "src"
+
+[tool.setuptools.package-dir]
+"" = "src"
 
 [tool.setuptools.packages.find]
 where = ["src"]

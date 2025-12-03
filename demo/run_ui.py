@@ -19,5 +19,5 @@ def main():
 
 
 if __name__ in {"__main__", "__mp_main__"}:
-    typer_ui = TyperUI(app, module_path="run.py")
+    typer_ui = TyperUI(app, module_path="run.py", title="MyCLI", subtitle="Cli executor UI")
     typer_ui.run()
