@@ -38,6 +38,7 @@ class TyperUI:
         self.execute_button = None
         self.log_controls = None
         self.export_button = None
+        self.help_button = None
         self.form_container = None
         self.log_buffer = []
 
@@ -127,7 +128,7 @@ class TyperUI:
         """
         # update current command from introspector and remember the path used
         # to select it (this path may be 'group/command' or a simple name)
-        
+
         # Navigate to the new URL with the command slug
         # This will trigger a page reload/render which will handle setting the command
         slug = command_name.replace("/", "__")
@@ -135,7 +136,7 @@ class TyperUI:
 
     def _refresh_command_form(self):
         """Refresh the command form with the current command's parameters"""
-        if hasattr(self, "form_container"):
+        if self.form_container:
             self.form_container.clear()
 
         if self.current_command:
@@ -155,30 +156,28 @@ class TyperUI:
                     # Pass empty params but with help flag handled by executor logic if we passed it
                     # But _execute_command takes params. We can manually trigger help execution
                     # similar to _show_all_help but for single command.
-                    
+
                     # We'll use _execute_command but pass a special flag or just handle it here.
                     # Let's handle it here to avoid messing with form values.
-                    
+
                     if self.command_executor.is_running:
                         return
 
                     self._clear_logs()
                     if self.log_card:
                         self.log_card.set_visibility(True)
-                    
+
                     args = self.command_executor.build_command_args(
-                        self.module_path,
-                        exec_name,
-                        {"help": True}
+                        self.module_path, exec_name, {"help": True}
                     )
-                    
+
                     # Separator
                     display_args = list(args)
                     if display_args:
                         display_args[0] = "python"
                     cmd_str = " ".join(display_args)
                     self._log_output(f"$ {cmd_str}")
-                    
+
                     asyncio.create_task(self.command_executor.execute_command(args))
 
                 (
@@ -215,16 +214,16 @@ class TyperUI:
         self._clear_logs()
         if self.log_card:
             self.log_card.set_visibility(True)
-        
+
         self._log_output("Welcome to Typer UI!\n")
 
         # Run help for the main app (no subcommand)
         args = self.command_executor.build_command_args(
             self.module_path,
             "",  # Empty command name for top-level help
-            {"help": True}
+            {"help": True},
         )
-        
+
         # Show the command being executed
         display_args = list(args)
         if display_args:
@@ -243,7 +242,7 @@ class TyperUI:
             self.current_command_path,
         )
         ui.page_title(self.title)
-        
+
         # Use gap-6 for consistent spacing, remove fixed margins from children
         with ui.column().classes("w-full max-w-4xl mx-auto p-4 gap-6"):
             # Styled Header Section
@@ -254,7 +253,9 @@ class TyperUI:
                         ui.avatar("terminal", color="primary", text_color="white")
                         with ui.column().classes("gap-0"):
                             ui.label(self.title).classes("text-xl font-bold")
-                            ui.label(self.subtitle).classes("text-caption text-gray-600")
+                            ui.label(self.subtitle).classes(
+                                "text-caption text-gray-600"
+                            )
 
                     with ui.chip(icon="folder", color="grey-2").classes("text-caption"):
                         ui.label(self.module_path).classes("font-mono")
@@ -264,13 +265,13 @@ class TyperUI:
                 # `self.commands` to be a list of CommandNode objects.
                 self.form_container = ui.column().classes("w-full")
             else:
-                ui.label("No commands found in the Typer app.").classes(
-                    "text-red-500"
-                )
+                ui.label("No commands found in the Typer app.").classes("text-red-500")
 
             # Execution Logs Section
             # Hidden by default, shown when needed
-            self.log_card = ui.card().classes("w-full no-shadow border-[1px] border-gray-200 p-0 gap-0")
+            self.log_card = ui.card().classes(
+                "w-full no-shadow border-[1px] border-gray-200 p-0 gap-0"
+            )
             with self.log_card:
                 with ui.row().classes(
                     "w-full items-center justify-between bg-gray-50 p-4 border-b border-gray-200"
@@ -279,8 +280,10 @@ class TyperUI:
                         ui.icon("dvr", color="primary")
                         ui.label("Execution Logs").classes("text-lg font-bold")
 
-                    self.log_controls, self.export_button = ui_comp.create_execution_controls(
-                        self._export_logs, self._clear_logs
+                    self.log_controls, self.export_button = (
+                        ui_comp.create_execution_controls(
+                            self._export_logs, self._clear_logs
+                        )
                     )
                     # Initially hide export button if buffer is empty
                     if not self.log_buffer:
@@ -310,7 +313,7 @@ class TyperUI:
                 self.current_command_path = None
 
             self.create_ui()
-            
+
             if self.current_command:
                 # Command selected: Show form, hide log initially
                 self._refresh_command_form()
@@ -342,4 +345,3 @@ def create_typer_ui(
         subtitle (str, optional): Subtitle of the application. Defaults to "Command executor UI".
     """
     return TyperUI(app, module_path, title=title, subtitle=subtitle)
-
