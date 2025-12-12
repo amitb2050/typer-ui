@@ -5,6 +5,8 @@ import pytest
 import typer
 from typer.testing import CliRunner
 
+pytest.register_assert_rewrite("typer_ui.main")
+
 # Add src to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../src")))
 

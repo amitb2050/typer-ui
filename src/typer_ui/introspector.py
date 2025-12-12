@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Any, Callable, List, Optional, get_type_hints
 
 import typer
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ParamType(Enum):
@@ -38,11 +38,10 @@ class CommandNode(BaseModel):
     children: List["CommandNode"] = Field(default_factory=list)
     func: Optional[Callable[..., Any]] = None
 
-    class Config:
-        arbitrary_types_allowed = True
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-CommandNode.update_forward_refs()
+CommandNode.model_rebuild()
 
 
 def _extract_parameters_from_callable(func: Callable[..., Any]) -> List[ParameterInfo]:

@@ -1,4 +1,3 @@
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -10,7 +9,6 @@ import pytest
 # We will mock the modules `nicegui.ui` so that attribute access returns mocks.
 
 dict_mock = MagicMock()
-pytest.register_assert_rewrite("typer_ui.main")
 
 
 @pytest.fixture
@@ -300,7 +298,8 @@ async def test_execute_command_ui_state_checks(typer_ui_instance):
     await typer_ui_instance._execute_command("cmd", {})
 
 
-def test_show_all_help_no_log_card(typer_ui_instance):
+@pytest.mark.asyncio
+async def test_show_all_help_no_log_card(typer_ui_instance):
     # Branch: if self.log_card: ...
     typer_ui_instance.log_card = None
     typer_ui_instance.command_executor.execute_command = AsyncMock(
@@ -309,8 +308,7 @@ def test_show_all_help_no_log_card(typer_ui_instance):
     typer_ui_instance.command_executor.build_command_args = MagicMock(return_value=[])
 
     # Needs async
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(typer_ui_instance._show_all_help())
+    await typer_ui_instance._show_all_help()
     # Should not crash
 
 

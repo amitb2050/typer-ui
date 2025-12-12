@@ -123,7 +123,9 @@ def test_create_parameter_input_edge_cases(mock_ui):
     assert container["flt"] == 1.5
 
     # Test Exception in label (param_type invalid)
-    info = ParameterInfo.construct(name="err", param_type="Invalid", python_type=str)
+    info = ParameterInfo.model_construct(
+        name="err", param_type="Invalid", python_type=str
+    )
     # This should not crash, just swallow exception
     create_parameter_input(info, container)
     # Check fallback to text input
