@@ -6,7 +6,7 @@ on:
       dry_run:
         description: 'Dry run (do not publish)'
         required: false
-        default: 'false'
+        default: 'true'
       bump_rule:
         description: 'Version bump rule (major, minor, patch)'
         required: true
