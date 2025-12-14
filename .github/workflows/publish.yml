@@ -59,10 +59,12 @@ jobs:
       id: version_bump
       env:
         BUMP_RULE: ${{ inputs.bump_rule }}
+        DRY_RUN: ${{ inputs.dry_run }}
       run: |
         python .github/scripts/bump_version.py
         
     - name: Commit and Push Version
+      if: ${{ inputs.dry_run != 'true' }}
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"

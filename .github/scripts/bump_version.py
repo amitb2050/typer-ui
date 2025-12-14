@@ -97,7 +97,10 @@ def main():
     new_ver = bump_semver_version(current_ver, bump_rule)
     print(f"New version: {new_ver}")
 
-    update_toml_version(new_ver)
+    if os.environ.get("DRY_RUN") == "true":
+        print("Dry run: Skipping update to pyproject.toml")
+    else:
+        update_toml_version(new_ver)
 
     # Write to GITHUB_OUTPUT environment variable so steps can use it
     if "GITHUB_OUTPUT" in os.environ:
