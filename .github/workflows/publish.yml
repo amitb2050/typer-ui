@@ -7,6 +7,15 @@ on:
         description: 'Dry run (do not publish)'
         required: false
         default: 'false'
+      bump_rule:
+        description: 'Version bump rule (major, minor, patch)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+        - major
+        - minor
+        - patch
 
 permissions:
   contents: write
@@ -48,6 +57,8 @@ jobs:
         
     - name: Version Bump
       id: version_bump
+      env:
+        BUMP_RULE: ${{ inputs.bump_rule }}
       run: |
         python .github/scripts/bump_version.py
         

@@ -1,7 +1,6 @@
 import os
 import re
 import sys
-from datetime import datetime
 from pathlib import Path
 
 # Path to the configuration file
@@ -36,38 +35,66 @@ def update_toml_version(new_version):
     print(f"Updated pyproject.toml to version {new_version}")
 
 
-def calculate_new_version(current_version):
+def bump_semver_version(current_version, rule):
     """
-    Calculates the new version based on the current date (CalVer).
-    Format: YYYY.MM.DD.INCREMENT
+    Bumps the SemVer version based on the rule.
+    Rule: 'major', 'minor', or 'patch'.
     """
-    now = datetime.now()
-    # Using %Y.%-m.%-d covers standard CalVer (e.g. 2025.12.9)
-    # But usually 0-padding is safer for sorting: 2025.12.09
-    date_str = now.strftime("%Y.%m.%d")
+    # specific check for the old legacy format to support transition if manual edit was missed
+    # YYYY.MM.DD.BUILD -> Reset to 0.1.0 is safest, or 1.0.0
+    # But since we already edited pyproject.toml, we expect X.Y.Z
 
-    # Check if the current version belongs to today
-    if current_version.startswith(date_str):
-        try:
-            # Split to get the increment part
-            # Expected format: YYYY.MM.DD.INC
-            parts = current_version.split(".")
-            increment = int(parts[-1]) + 1
-            return f"{date_str}.{increment}"
-        except (ValueError, IndexError):
-            # If parsing fails (e.g. transitioning from 0.1.0 to date-based)
-            # We start fresh for today
-            return f"{date_str}.0"
+    parts = current_version.split(".")
+    if len(parts) != 3:
+        # Fallback for non-semver compliant version
+        print(
+            f"Warning: Current version '{current_version}' is not standard SemVer (X.Y.Z)."
+        )
+        # If it looks like the old date format (4 parts), let's reset to a clean state
+        # or if it's just messed up.
+        # Let's decide to treat it as 0.0.0 pre-bump if we can't parse it,
+        # OR just fail. Failing is better to alert the user.
+        # However, to be nice, if we see 4 parts, we can try to coerce.
+        # But for now, let's just error out or assume the user fixed it.
+        # User request: "Based on the option, the right side should be reset to 0"
 
-    # If date is different (new day) or format is completely different
-    return f"{date_str}.0"
+        # If I see 2025.12.12.0, I'll log and force a reset.
+        print(
+            "Resetting to 0.1.0 as a baseline before applying bump is ambiguous provided the rule."
+        )
+        # Actually, let's just return a default start.
+        return "0.1.0"
+
+    try:
+        major, minor, patch = map(int, parts)
+    except ValueError:
+        print(f"Error: Version parts must be integers in '{current_version}'")
+        sys.exit(1)
+
+    if rule == "major":
+        major += 1
+        minor = 0
+        patch = 0
+    elif rule == "minor":
+        minor += 1
+        patch = 0
+    elif rule == "patch":
+        patch += 1
+    else:
+        print(f"Error: Unknown bump rule '{rule}'. Must be major, minor, or patch.")
+        sys.exit(1)
+
+    return f"{major}.{minor}.{patch}"
 
 
 def main():
     current_ver = get_current_version()
     print(f"Current version: {current_ver}")
 
-    new_ver = calculate_new_version(current_ver)
+    bump_rule = os.environ.get("BUMP_RULE", "patch").lower()
+    print(f"Bump rule: {bump_rule}")
+
+    new_ver = bump_semver_version(current_ver, bump_rule)
     print(f"New version: {new_ver}")
 
     update_toml_version(new_ver)
